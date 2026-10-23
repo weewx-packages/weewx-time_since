@@ -16,3 +16,5 @@ junk*
 *.suo
 .DS_Store
 *.config
+.pytest_cache/
+__pycache__/
