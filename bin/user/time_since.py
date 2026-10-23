@@ -3,23 +3,28 @@
 #
 #    See the file LICENSE.txt for your full rights.
 #
+#    23 October 2026: version 1.0.1. The docstring example now uses long_form,
+#    without it $time_since() renders as a number of seconds. VERSION matches
+#    the changelog.
+#
 
-"""Search list extension to calculate when an SQL statement last evaluted true, or how long since it evaluated true.
+"""Search list extension to calculate when an SQL statement last evaluated true, or how long since it evaluated true.
 
 Example:
 
-    <p>It last rained at $time_at('rain>0') ($time_since('rain>0') ago).</p>
+    <p>It last rained at $time_at('rain>0') ($time_since('rain>0').long_form ago).</p>
 
 would result in
 
     <p>It last rained 20 June 2020 (81 days, 1 hour, 35 minutes ago).</p>
 
+Without long_form, $time_since('rain>0') renders as the number of seconds, such as "7027200 seconds".
 """
 from weewx.cheetahgenerator import SearchList
 
 from weewx.units import ValueTuple, ValueHelper
 
-VERSION = "0.4"
+VERSION = "1.0.1"
 
 
 class TimeSince(SearchList):

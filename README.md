@@ -1,57 +1,73 @@
-# `time_since` and `time_at`
+# time_since
 
-This is a WeeWX search list extension (SLE) that can calculate when an SQL
-statement last evaluted true, or how long since it evaluated true.
+A WeeWX search list extension that adds two tags to Cheetah templates. `$time_at()` gives
+the time an SQL condition last held in the archive, `$time_since()` gives how long ago that
+was. It reads the archive only and writes nothing.
 
-Example:
+This is a continuation of [tkeffer/weewx-time_since](https://github.com/tkeffer/weewx-time_since)
+by Tom Keffer. It adds an installer for `weectl extension install`.
 
-    <p>It last rained at $time_at('rain>0') ($time_since('rain>0').long_form ago).</p>
+## Requirements
 
-would result in
-
-    <p>It last rained 20 June 2020 (81 days, 1 hour, 35 minutes ago).</p>
-
-It is possible to use alternative data bindings by specifying it as the second
-parameter to the `time_since` and `time_at` tags.
-
-    <p>It last rained at $time_at('rain>0', 'alt_binding') ($time_since('rain>0', 'alt_binding').long_form ago).</p>
-
+WeeWX with a Cheetah based skin. There are no external programs and no pip packages.
 
 ## Installation
 
-Unfortunately, there is no automated installer for this extension. However, it
-is very simple to install manually.
+Install `time-since` from the [WeeWX packages catalog](https://github.com/weewx-packages/catalog/blob/main/packages/time-since.md).
+The catalog page lists the current release, its WeeWX and Python
+requirements, and the install, update and removal commands.
 
-1. Put the file `time_since.py` in your WeeWX `user` subdirectory. For example, 
-  if you used the `setup.py` installation method, then you would do
+The installer only copies `time_since.py` into `bin/user`. Each skin has to name the
+extension itself, see the next section. The installer does not edit `skin.conf`, because
+that would replace search list extensions the skin already lists.
 
-   ``` cd /home/weewx/bin/user wget
-   https://raw.githubusercontent.com/tkeffer/weewx-time_since/master/bin/user/time_since.py
-   ```
+## Configuration
 
-   Alternatively, if you used the Debian package installer
-   ```
-   cd /usr/share/weewx/user
-   sudo wget https://raw.githubusercontent.com/tkeffer/weewx-time_since/master/bin/user/time_since.py
-   ```
+In the `skin.conf` of every skin that should use the tags, add the extension to the
+`CheetahGenerator` section:
 
-2. Add the extension to option `search_list_extensions` in the skin
-   configuration file `skin.conf` of whatever skin you are using. When you're
-   done, it will look something like this:
+```ini
+[CheetahGenerator]
+    search_list_extensions = user.time_since.TimeSince
+```
 
-   ```
-    [CheetahGenerator]
+Then use the tags in a template:
 
-        # Possible encodings are 'html_entities', 'utf8', or 'strict_ascii'
-        encoding = html_entities
-        search_list_extensions = user.time_since.TimeSince
+```html
+<p>It last rained at $time_at('rain>0') ($time_since('rain>0').long_form ago).</p>
+```
 
-        [[SummaryByMonth]]
-        ...
-   ```
+This renders as, for example, "It last rained 20 June 2020 (81 days, 1 hour, 35 minutes ago)."
 
-3. You are then free to use the new tag in the skin. For example, in my copy of
-   the `Seasons` skin, I have added it to the table in the `current.inc` module.
-   ``` <tr> <td class="label">$obs.label.last_rain</td> <td
-   class="data">$time_at('rain>0')<br/>$time_since('rain>0').long_form ago</td>
-   </tr> ```
+Both tags take the same arguments:
+
+| Argument | Default | Meaning |
+|---|---|---|
+| `expression` | none, required | An SQL condition on the columns of the archive table, such as `'rain>0'`. |
+| `data_binding` | the default binding of the report | Name of the data binding to search, such as `'alt_binding'`. |
+
+The search ends at the report time, so a report generated for an earlier time ignores later
+records. If no record matches, both tags render the `NONE` string of `[Units]` `[[StringFormats]]`,
+`N/A` by default. Without `.long_form`, `$time_since()` renders as a number of seconds.
+The layout of `.long_form` is set in `[Units]` `[[DeltaTimeFormats]]`, under the context `month`.
+
+The expression is pasted into the SQL statement as it is. Only use text that you wrote
+in the template.
+
+## Limitations
+
+* Tested with a small SQLite archive in the WeeWX schema and a Cheetah template, not with a
+  live station or a full skin.
+* Only the archive table of a binding is searched, not the daily summaries.
+
+## Development
+
+```
+just fast
+```
+
+Run it from the repository root with the Python of a WeeWX installation on `PATH`.
+
+## License
+
+Copyright (c) 2023-2026 Tom Keffer. GNU Lesser General Public License, version 3. See `LICENSE.txt`.

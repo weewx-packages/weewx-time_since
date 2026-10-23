@@ -1,3 +1,10 @@
+1.0.1 23oct26
+* Continuation of tkeffer/weewx-time_since.
+* Added install.py, so the extension installs with weectl extension install.
+* The module VERSION was 0.4 and is now in step with this file.
+* The docstring example used $time_since() without long_form, which renders as seconds.
+* Added tests and a justfile. README.md follows the weewx-packages schema.
+
 1.0 02mar26
 * Allow a data binding to be specified.
 
